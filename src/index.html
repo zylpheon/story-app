@@ -20,7 +20,8 @@
     <script type="module" src="/scripts/index.js"></script>
   </head>
   <body>
-    <a href="#main-content" class="skip-link">Skip to content</a>
+    <!-- Ubah href dari "#main-content" menjadi "#content" -->
+    <a href="#content" class="skip-link">Skip to content</a>
 
     <header>
       <div class="main-header container">
@@ -42,6 +43,8 @@
       </div>
     </header>
 
-    <main id="main-content" class="main-content"></main>
-  </body>
-</html>
+    <!-- Tambahkan id "content" dan tabindex="-1" untuk fokus -->
+    <main id="main-content" class="main-content">
+      <div id="content" tabindex="-1"></div>
+    </main>
+    <!-- ... existing code ... -->

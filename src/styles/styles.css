@@ -291,6 +291,7 @@ header {
   }
 }
 
+/* Tambahkan atau perbarui CSS untuk skip link */
 .skip-link {
   position: absolute;
   top: -40px;
@@ -305,3 +306,10 @@ header {
 .skip-link:focus {
   top: 0;
 }
+
+/* Tambahkan styling untuk elemen yang menerima fokus */
+#content:focus {
+  outline: none;
+}
+
+/* Sisanya adalah CSS yang sudah ada */

@@ -2,6 +2,7 @@
 import "../styles/styles.css";
 import "../styles/auth.css";
 import "../styles/story.css";
+import "../styles/transitions.css"; // Tambahkan import CSS transisi
 
 import App from "./pages/app";
 import LoginPage from "./pages/auth/login-page";
@@ -11,6 +12,13 @@ import routes from "./routes/routes";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const mainContent = document.querySelector("#main-content");
+  const contentFocus = document.querySelector("#content");
+  
+  // Tambahkan event listener untuk skip link
+  document.querySelector('.skip-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    contentFocus.focus();
+  });
 
   const createGlobalLoadingOverlay = () => {
     const loadingOverlay = document.createElement("div");
@@ -56,28 +64,82 @@ document.addEventListener("DOMContentLoaded", async () => {
       navigationDrawer: document.querySelector("#navigation-drawer"),
     });
 
-    const renderPage = async () => {
-      globalLoading.classList.add("active");
-
-      const { route, params } = parseActiveUrlWithParams();
-      let page;
-
-      if (typeof routes[route] === "function") {
-        page = routes[route](params);
-      } else {
-        page = routes[route] || routes["/"];
+    // Fungsi untuk melakukan transisi halaman dengan View Transition API
+    const renderPageWithTransition = async () => {
+      // Periksa apakah browser mendukung View Transition API
+      if (!document.startViewTransition) {
+        console.log('Browser tidak mendukung View Transition API, menggunakan fallback');
+        // Tambahkan class untuk fallback CSS
+        document.documentElement.classList.add('no-view-transitions');
+        // Fallback untuk browser yang tidak mendukung
+        await renderPageWithoutTransition();
+        return;
       }
 
-      mainContent.innerHTML = await page.render();
-      await page.afterRender();
+      try {
+        // Gunakan View Transition API dengan timeout untuk mencegah stuck
+        const transitionPromise = new Promise((resolve, reject) => {
+          const transition = document.startViewTransition(async () => {
+            try {
+              await renderPageContent();
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          });
 
+          // Tambahkan timeout untuk mencegah stuck loading
+          setTimeout(() => {
+            if (globalLoading.classList.contains('active')) {
+              globalLoading.classList.remove('active');
+            }
+          }, 3000);
+
+          // Tambahkan penanganan error
+          transition.finished.catch(error => {
+            console.error('View Transition error:', error);
+            globalLoading.classList.remove('active');
+            reject(error);
+          });
+        });
+
+        await transitionPromise;
+      } catch (error) {
+        console.error('Error during transition:', error);
+        // Fallback jika terjadi error
+        renderPageWithoutTransition();
+      }
+    };
+
+    // Fungsi untuk render halaman tanpa transisi (fallback)
+    const renderPageWithoutTransition = async () => {
+      globalLoading.classList.add("active");
+      await renderPageContent();
       setTimeout(() => {
         globalLoading.classList.remove("active");
       }, 500);
     };
 
-    await renderPage();
+    // Fungsi untuk render konten halaman
+    const renderPageContent = async () => {
+      const { route, params } = parseActiveUrlWithParams();
+      let page;
+    
+      if (typeof routes[route] === "function") {
+        page = routes[route](params);
+      } else {
+        page = routes[route] || routes["/"];
+      }
+    
+      // Render konten ke dalam elemen dengan id "content"
+      contentFocus.innerHTML = await page.render();
+      await page.afterRender();
+    };
 
-    window.addEventListener("hashchange", renderPage);
+    // Render halaman pertama kali
+    await renderPageWithTransition();
+
+    // Tambahkan event listener untuk perubahan hash
+    window.addEventListener("hashchange", renderPageWithTransition);
   }
 });

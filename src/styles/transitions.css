@@ -1,0 +1,98 @@
+/* View Transitions API Styles */
+
+/* Transisi default untuk semua elemen */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.5s;
+}
+
+/* Hapus kustomisasi transisi untuk story-card karena sekarang menggunakan inline style */
+/* .story-card {
+  view-transition-name: story-card;
+} */
+
+/* Kustomisasi transisi untuk hero-section */
+.hero-section {
+  view-transition-name: hero-section;
+}
+
+::view-transition-old(hero-section),
+::view-transition-new(hero-section) {
+  animation-duration: 0.7s;
+  animation-timing-function: ease-in-out;
+}
+
+/* Kustomisasi transisi untuk story-detail */
+/* .story-detail {
+  view-transition-name: story-detail;
+} */
+
+/* Kustomisasi transisi untuk add-story-form */
+.add-story-form {
+  view-transition-name: add-story-form;
+}
+
+::view-transition-old(add-story-form),
+::view-transition-new(add-story-form) {
+  animation-duration: 0.7s;
+  animation-timing-function: ease-out;
+}
+
+/* Efek fade untuk transisi halaman */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOutLeft {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+/* Kustomisasi animasi untuk transisi halaman */
+::view-transition-old(root) {
+  animation: 0.5s cubic-bezier(0.4, 0, 0.2, 1) both fadeOut,
+             0.5s cubic-bezier(0.4, 0, 0.2, 1) both slideOutLeft;
+}
+
+::view-transition-new(root) {
+  animation: 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both fadeIn,
+             0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both slideInRight;
+}
+
+/* Transisi khusus untuk story-card ke story-detail */
+.story-card[data-transitioning="true"] {
+  view-transition-name: story-to-detail;
+}
+
+.story-detail[data-transitioning="true"] {
+  view-transition-name: story-to-detail;
+}
+
+::view-transition-old(story-to-detail),
+::view-transition-new(story-to-detail) {
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fallback untuk browser yang tidak mendukung View Transition API */
+.no-view-transitions .story-card,
+.no-view-transitions .hero-section,
+.no-view-transitions .story-detail,
+.no-view-transitions .add-story-form {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.no-view-transitions .main-content {
+  transition: opacity 0.3s ease-in-out;
+}
