@@ -1,8 +1,7 @@
-// CSS imports
 import "../styles/styles.css";
 import "../styles/auth.css";
 import "../styles/story.css";
-import "../styles/transitions.css"; // Tambahkan import CSS transisi
+import "../styles/transitions.css";
 
 import App from "./pages/app";
 import LoginPage from "./pages/auth/login-page";
@@ -14,7 +13,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const mainContent = document.querySelector("#main-content");
   const contentFocus = document.querySelector("#content");
   
-  // Tambahkan event listener untuk skip link
   document.querySelector('.skip-link').addEventListener('click', (e) => {
     e.preventDefault();
     contentFocus.focus();
@@ -64,20 +62,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       navigationDrawer: document.querySelector("#navigation-drawer"),
     });
 
-    // Fungsi untuk melakukan transisi halaman dengan View Transition API
     const renderPageWithTransition = async () => {
-      // Periksa apakah browser mendukung View Transition API
       if (!document.startViewTransition) {
         console.log('Browser tidak mendukung View Transition API, menggunakan fallback');
-        // Tambahkan class untuk fallback CSS
         document.documentElement.classList.add('no-view-transitions');
-        // Fallback untuk browser yang tidak mendukung
         await renderPageWithoutTransition();
         return;
       }
 
       try {
-        // Gunakan View Transition API dengan timeout untuk mencegah stuck
         const transitionPromise = new Promise((resolve, reject) => {
           const transition = document.startViewTransition(async () => {
             try {
@@ -88,14 +81,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
           });
 
-          // Tambahkan timeout untuk mencegah stuck loading
           setTimeout(() => {
             if (globalLoading.classList.contains('active')) {
               globalLoading.classList.remove('active');
             }
           }, 3000);
 
-          // Tambahkan penanganan error
           transition.finished.catch(error => {
             console.error('View Transition error:', error);
             globalLoading.classList.remove('active');
@@ -106,12 +97,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         await transitionPromise;
       } catch (error) {
         console.error('Error during transition:', error);
-        // Fallback jika terjadi error
         renderPageWithoutTransition();
       }
     };
 
-    // Fungsi untuk render halaman tanpa transisi (fallback)
     const renderPageWithoutTransition = async () => {
       globalLoading.classList.add("active");
       await renderPageContent();
@@ -120,7 +109,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       }, 500);
     };
 
-    // Fungsi untuk render konten halaman
     const renderPageContent = async () => {
       const { route, params } = parseActiveUrlWithParams();
       let page;
@@ -131,15 +119,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         page = routes[route] || routes["/"];
       }
     
-      // Render konten ke dalam elemen dengan id "content"
       contentFocus.innerHTML = await page.render();
       await page.afterRender();
     };
 
-    // Render halaman pertama kali
     await renderPageWithTransition();
 
-    // Tambahkan event listener untuk perubahan hash
     window.addEventListener("hashchange", renderPageWithTransition);
   }
 });

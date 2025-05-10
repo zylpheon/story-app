@@ -16,15 +16,11 @@ export default class StoryDetailView {
   }
 
   afterRender() {
-    // Periksa apakah ada ID story yang sedang dalam transisi
     const transitioningStoryId = sessionStorage.getItem('transitioningStoryId');
     const storyDetailElement = document.querySelector('.story-detail');
     
     if (transitioningStoryId && this.storyId === transitioningStoryId) {
-      // Gunakan nama transisi yang sama dengan card yang diklik
       storyDetailElement.style.viewTransitionName = `story-card-${transitioningStoryId}`;
-      
-      // Hapus ID dari sessionStorage setelah digunakan
       sessionStorage.removeItem('transitioningStoryId');
     }
   }
@@ -43,16 +39,16 @@ export default class StoryDetailView {
     const storyDetailElement = document.getElementById("story-detail");
     
     storyDetailElement.innerHTML = `
-      <div class="story-header">
+      <div class="story-detail-header">
         <h1>${story.name}'s Story</h1>
         <p class="story-date">${story.createdAt}</p>
       </div>
       
-      <div class="story-content">
-        <div class="story-image-container">
-          <img src="${story.photoUrl}" alt="${story.name}'s story" class="story-image">
-        </div>
-        
+      <div class="story-detail-image">
+        <img src="${story.photoUrl}" alt="${story.name}'s story">
+      </div>
+      
+      <div class="story-detail-content">
         <div class="story-description">
           <p>${story.description}</p>
         </div>
@@ -61,12 +57,11 @@ export default class StoryDetailView {
       ${story.lat && story.lon ? `
         <div class="story-location">
           <h2>Location</h2>
-          <div id="map" class="map"></div>
+          <div id="map" class="story-map"></div>
         </div>
       ` : ''}
     `;
 
-    // Initialize map if coordinates are available
     if (story.lat && story.lon) {
       this.initMap(story.lat, story.lon);
     }
@@ -81,7 +76,6 @@ export default class StoryDetailView {
       document.head.appendChild(leafletCSS);
     }
 
-    // Load Leaflet script if not already loaded
     if (!window.L) {
       return new Promise((resolve) => {
         const script = document.createElement("script");
@@ -110,7 +104,6 @@ export default class StoryDetailView {
 
     L.marker([lat, lon]).addTo(map);
 
-    // Ensure map is properly sized after rendering
     setTimeout(() => {
       map.invalidateSize();
     }, 100);
