@@ -155,87 +155,81 @@ header {
     background: rgba(255, 255, 255, 0.1);
     border-bottom: none;
     padding: 8px 15px;
-    margin-bottom: 0;
-    margin-right: 10px;
-    border-radius: 6px;
-  }
-
-  .navigation-drawer {
-    display: none;
   }
 }
 
-@media screen and (max-width: 767px) {
-  .desktop-nav {
-    display: none;
-  }
-
-  .drawer-button {
-    display: inline-block;
-  }
-
-  .navigation-drawer {
-    display: block;
-  }
-}
-
-@media screen and (width > 1000px) {
-  .navigation-drawer {
-    min-height: auto;
-    width: auto;
-    padding: 0;
-    background-color: transparent;
-
-    flex-direction: row;
-    justify-content: space-between;
-
-    position: static;
-    box-shadow: none;
-    transform: translateX(0);
-  }
-
-  .nav-list {
-    flex-direction: row;
-  }
-
-  .nav-list li a {
-    display: inline-block;
-  }
-
-  .drawer-button {
-    display: none;
-  }
+.desktop-nav {
+  display: none;
 }
 
 .user-info {
-  padding: 15px;
-  color: var(--purple);
-  font-weight: bold;
-  border-bottom: 2px solid var(--light-yellow);
-  margin-bottom: 10px;
-  background: linear-gradient(to right, rgba(64, 93, 230, 0.1), rgba(131, 58, 180, 0.1));
-  border-radius: 6px;
-}
-
-.navigation-drawer .nav-list {
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
-.navigation-drawer .nav-list li a {
-  display: block;
-  padding: 12px 15px;
+  padding: 10px 15px;
   color: var(--text-color);
-  text-decoration: none;
-  transition: all 0.3s;
-  border-radius: 6px;
-  margin-bottom: 5px;
+  font-weight: 500;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 10px;
 }
 
-.navigation-drawer .nav-list li a:hover {
-  background-color: rgba(64, 93, 230, 0.1);
-  color: var(--royal-blue);
+.offline-message {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background-color: var(--card-background);
+  color: var(--text-color);
+  padding: 10px 15px;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: none;
+  z-index: 1000;
+}
+
+.offline-message.show {
+  display: block;
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.noscript-message {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: var(--red);
+  color: white;
+  text-align: center;
+  padding: 10px;
+  z-index: 9999;
+}
+
+footer {
+  background-color: var(--primary-color);
+  color: var(--light-text);
+  padding: 20px 0;
+  text-align: center;
+  margin-top: 50px;
+}
+
+.loading-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.error-message {
+  padding: 1rem;
+  background-color: rgba(255, 0, 0, 0.1);
+  color: var(--red);
+  border-radius: 4px;
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.empty-state {
+  padding: 2rem;
+  text-align: center;
+  color: #666;
 }
 
 .drawer-button {
@@ -291,7 +285,6 @@ header {
   }
 }
 
-/* Tambahkan atau perbarui CSS untuk skip link */
 .skip-link {
   position: absolute;
   top: -40px;
@@ -307,7 +300,6 @@ header {
   top: 0;
 }
 
-/* Tambahkan styling untuk elemen yang menerima fokus */
 #content:focus {
   outline: none;
 }

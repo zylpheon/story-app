@@ -357,18 +357,88 @@
   background-color: #e0e0e0;
 }
 
+.story-card {
+  position: relative;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.story-card.removing {
+  transform: scale(0.8);
+  opacity: 0;
+}
+
+.story-card-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.story-card:hover .story-card-actions {
+  opacity: 1;
+}
+
+.remove-favorite-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9rem;
+}
+
+.remove-favorite-btn:hover {
+  color: var(--red);
+}
+
 .notification {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background-color: var(--card-background);
+  background-color: white;
   border-left: 4px solid var(--primary-color);
-  padding: 1rem;
+  padding: 12px 15px;
   border-radius: 4px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 1000;
   max-width: 350px;
   animation: slideIn 0.3s ease-out forwards;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification.error {
+  border-left-color: var(--red);
+}
+
+.notification.fade-out {
+  animation: slideOut 0.3s ease-in forwards;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #999;
+  margin-left: 10px;
+}
+
+.notification-close:hover {
+  color: #666;
 }
 
 @keyframes slideIn {
@@ -376,51 +446,21 @@
     transform: translateX(100%);
     opacity: 0;
   }
-
   to {
     transform: translateX(0);
     opacity: 1;
   }
 }
 
-.notification-title {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.notification-body {
-  font-size: 0.875rem;
-  color: #666;
-}
-
-.notification-close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 1rem;
-  cursor: pointer;
-  color: #999;
-}
-
-.notification-close:hover {
-  color: #666;
-}
-
-.story-filters {
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background-color: var(--card-background);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.filter-group {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
 }
 
 .filter-label {
@@ -472,49 +512,26 @@
 }
 
 .load-more-container .btn,
-.story-actions .btn,
-.view-more-container .btn {
-  width: auto;
-  min-width: auto;
+.back-to-top {
+  min-width: 120px;
 }
 
 .back-to-top {
-  cursor: pointer;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: none;
+  z-index: 99;
+  opacity: 0.8;
 }
 
-.photo-input-options {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  align-items: center;
-}
-
-.camera-container {
-  margin: 1rem 0;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.camera-container video {
-  width: 100%;
-  height: auto;
+.back-to-top.visible {
   display: block;
+  animation: fadeIn 0.3s ease-out;
 }
 
-.camera-controls {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1rem;
-  background-color: #f5f5f5;
-}
-
-.location-map-container {
-  margin-top: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
+.back-to-top:hover {
+  opacity: 1;
 }
 
 .location-map {
@@ -535,4 +552,52 @@
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
+}
+
+.not-found-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  text-align: center;
+}
+
+.not-found-content {
+  max-width: 500px;
+  padding: 2rem;
+}
+
+.not-found-content h1 {
+  font-size: 8rem;
+  margin: 0;
+  color: var(--primary-color);
+  line-height: 1;
+}
+
+.not-found-content h2 {
+  font-size: 2rem;
+  margin: 0 0 1rem;
+}
+
+.not-found-content p {
+  margin-bottom: 2rem;
+  color: var(--text-secondary);
+}
+
+.status-notification {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background-color: var(--primary-color);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+}
+
+.status-notification.show {
+  transform: translateX(-50%) translateY(0);
 }

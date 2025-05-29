@@ -70,14 +70,11 @@ export default class StoryListPage {
       )
       .join("");
       
-    // Tambahkan event listener untuk transisi ke halaman detail
     const storyCards = storyListElement.querySelectorAll('.story-card');
     storyCards.forEach((card, index) => {
-      // Berikan nama transisi unik untuk setiap card
       card.style.viewTransitionName = `story-card-${card.dataset.storyId}`;
       
       card.addEventListener('click', (e) => {
-        // Simpan ID story yang diklik di sessionStorage untuk digunakan di halaman detail
         sessionStorage.setItem('transitioningStoryId', card.dataset.storyId);
       });
     });

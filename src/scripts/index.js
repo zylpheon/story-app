@@ -8,6 +8,7 @@ import LoginPage from "./pages/auth/login-page";
 import AuthService from "./data/auth-service";
 import { parseActiveUrlWithParams } from "./routes/url-parser";
 import routes from "./routes/routes";
+import { Workbox } from 'workbox-window';
 
 document.addEventListener("DOMContentLoaded", async () => {
   const mainContent = document.querySelector("#main-content");
@@ -34,6 +35,58 @@ document.addEventListener("DOMContentLoaded", async () => {
   const globalLoading = createGlobalLoadingOverlay();
 
   globalLoading.classList.add("active");
+  
+  if ('serviceWorker' in navigator) {
+    const wb = new Workbox('/sw.js');
+    
+    wb.addEventListener('installed', (event) => {
+      if (event.isUpdate) {
+        console.log('New content is available, please refresh.');
+        if (confirm('New content is available! Click OK to refresh.')) {
+          window.location.reload();
+        }
+      }
+    });
+    
+    wb.addEventListener('waiting', (event) => {
+      console.log('Service worker is waiting to activate.');
+    });
+    
+    wb.addEventListener('controlling', (event) => {
+      console.log('Service worker is now controlling the page.');
+    });
+    
+    wb.addEventListener('activated', (event) => {
+      if (!event.isUpdate) {
+        console.log('Service worker activated for the first time!');
+      }
+    });
+    
+    wb.addEventListener('message', (event) => {
+      if (event.data.type === 'ONLINE_STATUS') {
+        const statusMessage = document.createElement('div');
+        statusMessage.className = 'status-notification';
+        statusMessage.textContent = event.data.isOnline ? 
+          'You are back online! 🌐' : 
+          'You are offline. Some features may be limited. 📴';
+        
+        document.body.appendChild(statusMessage);
+        
+        setTimeout(() => {
+          statusMessage.classList.add('show');
+        }, 100);
+        
+        setTimeout(() => {
+          statusMessage.classList.remove('show');
+          setTimeout(() => {
+            document.body.removeChild(statusMessage);
+          }, 300);
+        }, 3000);
+      }
+    });
+    
+    wb.register();
+  }
 
   if (!AuthService.isLoggedIn()) {
     const loginPage = new LoginPage();
@@ -64,7 +117,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const renderPageWithTransition = async () => {
       if (!document.startViewTransition) {
-        console.log('Browser tidak mendukung View Transition API, menggunakan fallback');
+        console.log('Browser does not support View Transition API, using fallback');
         document.documentElement.classList.add('no-view-transitions');
         await renderPageWithoutTransition();
         return;
@@ -116,7 +169,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (typeof routes[route] === "function") {
         page = routes[route](params);
       } else {
-        page = routes[route] || routes["/"];
+        page = routes[route] || routes["/404"];
       }
     
       contentFocus.innerHTML = await page.render();

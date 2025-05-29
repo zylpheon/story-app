@@ -43,7 +43,6 @@ export default class HomeView {
     this.storyListElement.innerHTML = '<div class="empty-state">No stories found</div>';
   }
 
-  // Tambahkan atribut data-transitioning pada story-card
   displayStories(stories) {
     if (stories.length === 0) {
       this.showEmptyState();
@@ -62,17 +61,13 @@ export default class HomeView {
       )
       .join("");
       
-    // Tambahkan event listener untuk transisi ke halaman detail
     const storyCards = this.storyListElement.querySelectorAll('.story-card');
     storyCards.forEach((card, index) => {
-      // Berikan nama transisi unik untuk setiap card
       card.style.viewTransitionName = `story-card-${card.dataset.storyId}`;
       
       card.addEventListener('click', (e) => {
-        // Tandai elemen ini untuk transisi khusus
         card.setAttribute('data-transitioning', 'true');
         
-        // Simpan ID story yang diklik di sessionStorage untuk digunakan di halaman detail
         sessionStorage.setItem('transitioningStoryId', card.dataset.storyId);
       });
     });

@@ -3,6 +3,11 @@ export default class StoryDetailView {
     this.storyId = storyId;
     this.container = null;
     this.mapElement = null;
+    this.presenter = null;
+  }
+
+  setPresenter(presenter) {
+    this.presenter = presenter;
   }
 
   render() {
@@ -35,12 +40,18 @@ export default class StoryDetailView {
     storyDetailElement.innerHTML = `<div class="error-message">Failed to load story: ${message}</div>`;
   }
 
-  displayStory(story) {
+  async displayStory(story) {
     const storyDetailElement = document.getElementById("story-detail");
+    const isFavorite = await this.presenter.isStoryFavorite(story.id);
     
     storyDetailElement.innerHTML = `
       <div class="story-detail-header">
         <h1>${story.name}'s Story</h1>
+        <div class="story-actions">
+          <button id="favorite-button" class="btn ${isFavorite ? 'btn-danger' : 'btn-primary'}">
+            ${isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+          </button>
+        </div>
         <p class="story-date">${story.createdAt}</p>
       </div>
       
@@ -61,6 +72,22 @@ export default class StoryDetailView {
         </div>
       ` : ''}
     `;
+
+    // Add event listener to favorite button
+    const favoriteButton = document.getElementById("favorite-button");
+    favoriteButton.addEventListener("click", async () => {
+      if (isFavorite) {
+        await this.presenter.removeFromFavorites(story.id);
+        favoriteButton.textContent = "Add to Favorites";
+        favoriteButton.classList.remove("btn-danger");
+        favoriteButton.classList.add("btn-primary");
+      } else {
+        await this.presenter.addToFavorites(story);
+        favoriteButton.textContent = "Remove from Favorites";
+        favoriteButton.classList.remove("btn-primary");
+        favoriteButton.classList.add("btn-danger");
+      }
+    });
 
     if (story.lat && story.lon) {
       this.initMap(story.lat, story.lon);

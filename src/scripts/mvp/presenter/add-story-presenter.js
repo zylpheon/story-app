@@ -158,14 +158,14 @@ export default class AddStoryPresenter {
     }
 
     if (Notification.permission === "granted") {
-      new Notification("Story created successfully", {
-        body: `You have created a new story with description: ${description.substring(0, 50)}${description.length > 50 ? "..." : ""}`,
+      new Notification("Story berhasil dibuat", {
+        body: `Anda telah membuat story baru dengan deskripsi: ${description.substring(0, 50)}${description.length > 50 ? "..." : ""}`,
       });
     } else if (Notification.permission !== "denied") {
       Notification.requestPermission().then((permission) => {
         if (permission === "granted") {
-          new Notification("Story created successfully", {
-            body: `You have created a new story with description: ${description.substring(0, 50)}${description.length > 50 ? "..." : ""}`,
+          new Notification("Story berhasil dibuat", {
+            body: `Anda telah membuat story baru dengan deskripsi: ${description.substring(0, 50)}${description.length > 50 ? "..." : ""}`,
           });
         }
       });

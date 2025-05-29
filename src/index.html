@@ -3,7 +3,11 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#4285f4" />
+    <meta name="description" content="Share your stories and experiences with the world" />
     <link rel="shortcut icon" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <link rel="manifest" href="/manifest.json" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -15,36 +19,57 @@
     <link rel="stylesheet" href="./styles/home.css" />
     <link rel="stylesheet" href="./styles/auth.css" />
 
-    <title>App</title>
+    <title>Story App</title>
 
     <script type="module" src="/scripts/index.js"></script>
   </head>
   <body>
-    <!-- Ubah href dari "#main-content" menjadi "#content" -->
     <a href="#content" class="skip-link">Skip to content</a>
 
     <header>
       <div class="main-header container">
-        <a class="brand-name" href="#/">App</a>
+        <a class="brand-name" href="#/">Story App</a>
 
         <nav class="desktop-nav">
           <ul class="nav-list" id="desktop-nav-list">
             <li><a href="#/">Home Page</a></li>
+            <li><a href="#/stories">All Stories</a></li>
+            <li><a href="#/favorites">Favorites</a></li>
+            <li><a href="#/add-story">Add Story</a></li>
           </ul>
         </nav>
+
+        <button id="drawer-button" class="drawer-button" aria-label="Open navigation menu">☰</button>
 
         <nav id="navigation-drawer" class="navigation-drawer">
           <ul id="nav-list" class="nav-list">
             <li><a href="#/">Home Page</a></li>
+            <li><a href="#/stories">All Stories</a></li>
+            <li><a href="#/favorites">Favorites</a></li>
+            <li><a href="#/add-story">Add Story</a></li>
           </ul>
         </nav>
-
-        <button id="drawer-button" class="drawer-button">☰</button>
       </div>
     </header>
 
-    <!-- Tambahkan id "content" dan tabindex="-1" untuk fokus -->
-    <main id="main-content" class="main-content">
-      <div id="content" tabindex="-1"></div>
+    <main id="main-content" tabindex="-1">
+      <div id="content"></div>
     </main>
-    <!-- ... existing code ... -->
+
+    <footer>
+      <div class="container">
+        <p>&copy; 2025 Story App - Share your stories with the world</p>
+      </div>
+    </footer>
+
+    <div id="offline-message" class="offline-message">
+      You are currently offline. Some features may be limited.
+    </div>
+
+    <noscript>
+      <div class="noscript-message">
+        This application requires JavaScript to be enabled in your browser.
+      </div>
+    </noscript>
+  </body>
+</html>
