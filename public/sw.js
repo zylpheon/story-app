@@ -14,36 +14,45 @@ if (workbox) {
   const { precacheAndRoute } = workbox.precaching;
   const { ExpirationPlugin } = workbox.expiration;
   const { CacheableResponsePlugin } = workbox.cacheableResponse;
+  const { BackgroundSyncPlugin } = workbox.backgroundSync;
 
-  // Precache core app shell
+  // Precache core app shell dengan relative paths
   const precacheManifest = [
-    { url: "/", revision: "1" },
-    { url: "/index.html", revision: "1" },
-    { url: "/favicon.png", revision: "1" },
-    { url: "/manifest.json", revision: "1" },
-    // CSS files with absolute paths
-    { url: "/styles/styles.css", revision: "1" },
-    { url: "/styles/story.css", revision: "1" },
-    { url: "/styles/home.css", revision: "1" },
-    { url: "/styles/auth.css", revision: "1" },
-    { url: "/styles/transitions.css", revision: "1" },
-    // Icons
-    { url: "/icons/icon-72x72.png", revision: "1" },
-    { url: "/icons/icon-96x96.png", revision: "1" },
-    { url: "/icons/icon-128x128.png", revision: "1" },
-    { url: "/icons/icon-144x144.png", revision: "1" },
-    { url: "/icons/icon-152x152.png", revision: "1" },
-    { url: "/icons/icon-192x192.png", revision: "1" },
-    { url: "/icons/icon-384x384.png", revision: "1" },
-    { url: "/icons/icon-512x512.png", revision: "1" },
+    { url: "./", revision: "1" },
+    { url: "./index.html", revision: "1" },
+    { url: "./favicon.png", revision: "1" },
+    { url: "./manifest.json", revision: "1" },
+    // CSS files dengan relative paths
+    { url: "./styles/styles.css", revision: "1" },
+    { url: "./styles/story.css", revision: "1" },
+    { url: "./styles/home.css", revision: "1" },
+    { url: "./styles/auth.css", revision: "1" },
+    { url: "./styles/transitions.css", revision: "1" },
+    // Icons dengan relative paths
+    { url: "./icons/icon-72x72.png", revision: "1" },
+    { url: "./icons/icon-96x96.png", revision: "1" },
+    { url: "./icons/icon-128x128.png", revision: "1" },
+    { url: "./icons/icon-144x144.png", revision: "1" },
+    { url: "./icons/icon-152x152.png", revision: "1" },
+    { url: "./icons/icon-192x192.png", revision: "1" },
+    { url: "./icons/icon-384x384.png", revision: "1" },
+    { url: "./icons/icon-512x512.png", revision: "1" },
   ];
+
+  // Tambahkan base URL untuk production
+  if (self.location.hostname !== "localhost") {
+    const BASE_URL = "https://story-app-valentino-dicoding.netlify.app";
+    precacheManifest.forEach((entry) => {
+      entry.url = BASE_URL + entry.url.substring(1); // Remove the dot and add base URL
+    });
+  }
 
   precacheAndRoute(precacheManifest);
 
-  // Update CSS caching strategy to be more aggressive
+  // Cache CSS
   registerRoute(
     ({ request }) => request.destination === "style",
-    new strategies.CacheFirst({
+    new strategies.StaleWhileRevalidate({
       cacheName: "styles",
       plugins: [
         new CacheableResponsePlugin({
@@ -51,9 +60,9 @@ if (workbox) {
         }),
         new ExpirationPlugin({
           maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
-          maxEntries: 30, // Limit number of entries
+          maxEntries: 30,
         }),
-      ]
+      ],
     })
   );
 
@@ -90,10 +99,16 @@ if (workbox) {
     })
   );
 
-  // Cache API requests dengan strategi yang lebih baik
+  // Background sync plugin untuk offline requests
+  const bgSyncPlugin = new BackgroundSyncPlugin("offline-requests", {
+    maxRetentionTime: 24 * 60, // Retry for max of 24 Hours (specified in minutes)
+  });
+
+  // Cache API requests dengan background sync untuk POST
   registerRoute(
-    ({ url }) => url.pathname.startsWith("/api") || url.href.includes("dicoding.dev"),
-    new strategies.StaleWhileRevalidate({
+    ({ url }) =>
+      url.pathname.startsWith("/api") || url.href.includes("dicoding.dev"),
+    new strategies.NetworkFirst({
       cacheName: "api-responses",
       plugins: [
         new CacheableResponsePlugin({
@@ -104,43 +119,32 @@ if (workbox) {
           maxAgeSeconds: 24 * 60 * 60, // 1 day
         }),
       ],
+      networkTimeoutSeconds: 3,
+    }),
+    "GET"
+  );
+
+  // Register route for offline POST requests with background sync
+  registerRoute(
+    ({ url, request }) =>
+      (url.pathname.startsWith("/api/") || url.href.includes("dicoding.dev")) &&
+      request.method === "POST",
+    new strategies.NetworkOnly({
+      plugins: [bgSyncPlugin],
     })
   );
 
-  // Fallback handler untuk semua request yang gagal
+  // Default network-first strategy untuk semua request lainnya
   registerRoute(
-    () => true,
+    ({ request }) => request.mode === "navigate",
     new strategies.NetworkFirst({
-      cacheName: "fallback-cache",
+      cacheName: "pages",
       plugins: [
         new CacheableResponsePlugin({
           statuses: [0, 200],
         }),
         new ExpirationPlugin({
           maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
-        }),
-      ],
-      networkTimeoutSeconds: 3,
-      async fetchOptions() {
-        try {
-          return {
-            cache: "no-cache" // Force check server
-          };
-        } catch (error) {
-          return {};
-        }
-      },
-    })
-  );
-
-  // Default handler for all other requests
-  registerRoute(
-    () => true,
-    new strategies.NetworkFirst({
-      cacheName: "routes",
-      plugins: [
-        new CacheableResponsePlugin({
-          statuses: [0, 200],
         }),
       ],
       networkTimeoutSeconds: 3,
@@ -206,103 +210,79 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
-// Handle network status changes
+// Handle service worker messages
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
 });
 
-// Online/Offline status handling
-self.addEventListener("online", () => {
-  self.clients.matchAll().then((clients) => {
-    clients.forEach((client) => {
-      client.postMessage({
-        type: "ONLINE_STATUS",
-        isOnline: true,
-      });
-    });
-  });
-});
-
-self.addEventListener("offline", () => {
-  self.clients.matchAll().then((clients) => {
-    clients.forEach((client) => {
-      client.postMessage({
-        type: "ONLINE_STATUS",
-        isOnline: false,
-      });
-    });
-  });
-});
-
-// Handler khusus untuk offline mode
-self.addEventListener('fetch', (event) => {
-  // Handle offline mode
-  if (!navigator.onLine) {
-    event.respondWith(
-      caches.match(event.request)
-        .then((response) => {
-          if (response) {
-            return response; // Return cached response
-          }
-          
-          // If not in cache, try network
-          return fetch(event.request)
-            .catch(() => {
-              // If network fails, return offline page/data
-              return caches.match('/offline.html') 
-                || new Response('{"offline": true}', {
-                  headers: { 'Content-Type': 'application/json' }
-                });
-            });
-        })
-    );
+// Handle background sync
+self.addEventListener("sync", (event) => {
+  if (event.tag === "offline-requests") {
+    console.log("Background sync triggered for offline requests");
   }
-});
 
-// Handler untuk background sync
-const bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin('offline-requests', {
-  maxRetentionTime: 24 * 60 // Retry for max of 24 Hours (specified in minutes)
-});
-
-// Register route for offline POST requests
-registerRoute(
-  ({url}) => url.pathname.startsWith('/api/') && url.href.includes('dicoding.dev'),
-  new workbox.strategies.NetworkOnly({
-    plugins: [bgSyncPlugin]
-  }),
-  'POST'
-);
-
-// Tambahkan handler untuk mensinkronkan data saat online kembali
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-stories') {
+  if (event.tag === "sync-stories") {
     event.waitUntil(syncStories());
   }
 });
 
+// Function untuk sync stories
 async function syncStories() {
   try {
-    const cache = await caches.open('api-responses');
+    const cache = await caches.open("api-responses");
     const requests = await cache.keys();
-    
+
     const syncPromises = requests
-      .filter(request => request.url.includes('dicoding.dev'))
+      .filter((request) => request.url.includes("dicoding.dev"))
       .map(async (request) => {
         try {
           const networkResponse = await fetch(request);
-          await cache.put(request, networkResponse.clone());
-          return networkResponse;
+          if (networkResponse.ok) {
+            await cache.put(request, networkResponse.clone());
+            return networkResponse;
+          }
         } catch (error) {
-          console.error('Sync failed for:', request.url);
+          console.error("Sync failed for:", request.url, error);
           return null;
         }
       });
 
     await Promise.all(syncPromises);
-    console.log('Stories synced successfully');
+    console.log("Stories synced successfully");
   } catch (error) {
-    console.error('Story sync failed:', error);
+    console.error("Story sync failed:", error);
   }
 }
+
+// Handle install event
+self.addEventListener("install", (event) => {
+  console.log("Service Worker installing");
+  self.skipWaiting();
+});
+
+// Handle activate event
+self.addEventListener("activate", (event) => {
+  console.log("Service Worker activated");
+  event.waitUntil(
+    caches
+      .keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            // Delete old caches if needed
+            if (
+              cacheName.startsWith("workbox-") &&
+              cacheName !== "workbox-precache-v2"
+            ) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => {
+        return self.clients.claim();
+      })
+  );
+});
