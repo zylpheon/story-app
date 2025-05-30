@@ -344,3 +344,43 @@ footer {
 div#story-detail.story-detail {
   margin-top: 2rem;
 }
+
+/* Application Shell Styles */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-shell__header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: linear-gradient(to right, var(--royal-blue), var(--purple));
+}
+
+.app-shell__main {
+  flex: 1;
+  padding-block: 30px;
+}
+
+.app-shell__content {
+  min-height: 50vh;
+}
+
+.app-shell__footer {
+  margin-top: auto;
+  background-color: var(--primary-color);
+  color: var(--light-text);
+  padding: 20px 0;
+}
+
+.app-shell__loading {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
