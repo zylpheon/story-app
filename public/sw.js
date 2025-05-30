@@ -16,11 +16,18 @@ if (workbox) {
   const { CacheableResponsePlugin } = workbox.cacheableResponse;
 
   // Precache core app shell
-  precacheAndRoute([
+  const precacheManifest = [
     { url: "/", revision: "1" },
     { url: "/index.html", revision: "1" },
     { url: "/favicon.png", revision: "1" },
     { url: "/manifest.json", revision: "1" },
+    // CSS files with absolute paths
+    { url: "/styles/styles.css", revision: "1" },
+    { url: "/styles/story.css", revision: "1" },
+    { url: "/styles/home.css", revision: "1" },
+    { url: "/styles/auth.css", revision: "1" },
+    { url: "/styles/transitions.css", revision: "1" },
+    // Icons
     { url: "/icons/icon-72x72.png", revision: "1" },
     { url: "/icons/icon-96x96.png", revision: "1" },
     { url: "/icons/icon-128x128.png", revision: "1" },
@@ -29,31 +36,52 @@ if (workbox) {
     { url: "/icons/icon-192x192.png", revision: "1" },
     { url: "/icons/icon-384x384.png", revision: "1" },
     { url: "/icons/icon-512x512.png", revision: "1" },
-  ]);
+  ];
 
-  // Cache static resources with Cache First strategy
+  precacheAndRoute(precacheManifest);
+
+  // Update CSS caching strategy to be more aggressive
   registerRoute(
-    ({ request }) =>
-      request.destination === "style" ||
-      request.destination === "script" ||
-      request.destination === "worker",
+    ({ request }) => request.destination === "style",
     new strategies.CacheFirst({
+      cacheName: "styles",
+      plugins: [
+        new CacheableResponsePlugin({
+          statuses: [0, 200],
+        }),
+        new ExpirationPlugin({
+          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+          maxEntries: 30, // Limit number of entries
+        }),
+      ]
+    })
+  );
+
+  // Cache JavaScript
+  registerRoute(
+    ({ request }) => request.destination === "script",
+    new strategies.StaleWhileRevalidate({
       cacheName: "static-resources",
       plugins: [
+        new CacheableResponsePlugin({
+          statuses: [0, 200],
+        }),
         new ExpirationPlugin({
-          maxEntries: 60,
           maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
         }),
       ],
     })
   );
 
-  // Cache images with Cache First strategy
+  // Cache images
   registerRoute(
     ({ request }) => request.destination === "image",
     new strategies.CacheFirst({
       cacheName: "images",
       plugins: [
+        new CacheableResponsePlugin({
+          statuses: [0, 200],
+        }),
         new ExpirationPlugin({
           maxEntries: 60,
           maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
@@ -62,7 +90,7 @@ if (workbox) {
     })
   );
 
-  // Cache API requests with Network First strategy
+  // Cache API requests
   registerRoute(
     ({ url }) =>
       url.pathname.startsWith("/api") || url.href.includes("dicoding.dev"),
@@ -77,19 +105,21 @@ if (workbox) {
           maxAgeSeconds: 24 * 60 * 60, // 1 day
         }),
       ],
+      networkTimeoutSeconds: 3,
     })
   );
 
-  // Cache navigation requests with Network First strategy
+  // Default handler for all other requests
   registerRoute(
-    ({ request }) => request.mode === "navigate",
+    () => true,
     new strategies.NetworkFirst({
-      cacheName: "pages",
+      cacheName: "default",
       plugins: [
         new CacheableResponsePlugin({
           statuses: [0, 200],
         }),
       ],
+      networkTimeoutSeconds: 3,
     })
   );
 } else {
