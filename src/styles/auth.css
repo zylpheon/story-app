@@ -1,3 +1,8 @@
+input#login-email,
+input#login-password {
+  width: 100%;
+}
+
 .auth-container {
   display: flex;
   justify-content: center;
