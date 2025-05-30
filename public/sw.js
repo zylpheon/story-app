@@ -19,14 +19,16 @@ if (workbox) {
   precacheAndRoute([
     { url: "/", revision: "1" },
     { url: "/index.html", revision: "1" },
-    { url: "/scripts/index.js", revision: "1" },
-    { url: "/styles/styles.css", revision: "1" },
-    { url: "/styles/story.css", revision: "1" },
-    { url: "/styles/home.css", revision: "1" },
-    { url: "/styles/auth.css", revision: "1" },
-    { url: "/styles/transitions.css", revision: "1" },
     { url: "/favicon.png", revision: "1" },
     { url: "/manifest.json", revision: "1" },
+    { url: "/icons/icon-72x72.png", revision: "1" },
+    { url: "/icons/icon-96x96.png", revision: "1" },
+    { url: "/icons/icon-128x128.png", revision: "1" },
+    { url: "/icons/icon-144x144.png", revision: "1" },
+    { url: "/icons/icon-152x152.png", revision: "1" },
+    { url: "/icons/icon-192x192.png", revision: "1" },
+    { url: "/icons/icon-384x384.png", revision: "1" },
+    { url: "/icons/icon-512x512.png", revision: "1" },
   ]);
 
   // Cache static resources with Cache First strategy
@@ -111,8 +113,8 @@ self.addEventListener("push", (event) => {
 
   const options = {
     body: body,
-    icon: "/icons/android/android-launchericon-192-192.png",
-    badge: "/icons/android/android-launchericon-96-96.png",
+    icon: "/icons/icon-192x192.png",
+    badge: "/icons/icon-96x96.png",
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
@@ -122,7 +124,7 @@ self.addEventListener("push", (event) => {
       {
         action: "open",
         title: "Open App",
-        icon: "/icons/android/android-launchericon-72-72.png",
+        icon: "/icons/icon-72x72.png",
       },
     ],
   };
