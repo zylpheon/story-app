@@ -90,11 +90,10 @@ if (workbox) {
     })
   );
 
-  // Cache API requests
+  // Cache API requests dengan strategi yang lebih baik
   registerRoute(
-    ({ url }) =>
-      url.pathname.startsWith("/api") || url.href.includes("dicoding.dev"),
-    new strategies.NetworkFirst({
+    ({ url }) => url.pathname.startsWith("/api") || url.href.includes("dicoding.dev"),
+    new strategies.StaleWhileRevalidate({
       cacheName: "api-responses",
       plugins: [
         new CacheableResponsePlugin({
@@ -105,7 +104,32 @@ if (workbox) {
           maxAgeSeconds: 24 * 60 * 60, // 1 day
         }),
       ],
+    })
+  );
+
+  // Fallback handler untuk semua request yang gagal
+  registerRoute(
+    () => true,
+    new strategies.NetworkFirst({
+      cacheName: "fallback-cache",
+      plugins: [
+        new CacheableResponsePlugin({
+          statuses: [0, 200],
+        }),
+        new ExpirationPlugin({
+          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+        }),
+      ],
       networkTimeoutSeconds: 3,
+      async fetchOptions() {
+        try {
+          return {
+            cache: "no-cache" // Force check server
+          };
+        } catch (error) {
+          return {};
+        }
+      },
     })
   );
 
@@ -113,7 +137,7 @@ if (workbox) {
   registerRoute(
     () => true,
     new strategies.NetworkFirst({
-      cacheName: "default",
+      cacheName: "routes",
       plugins: [
         new CacheableResponsePlugin({
           statuses: [0, 200],
@@ -211,3 +235,74 @@ self.addEventListener("offline", () => {
     });
   });
 });
+
+// Handler khusus untuk offline mode
+self.addEventListener('fetch', (event) => {
+  // Handle offline mode
+  if (!navigator.onLine) {
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => {
+          if (response) {
+            return response; // Return cached response
+          }
+          
+          // If not in cache, try network
+          return fetch(event.request)
+            .catch(() => {
+              // If network fails, return offline page/data
+              return caches.match('/offline.html') 
+                || new Response('{"offline": true}', {
+                  headers: { 'Content-Type': 'application/json' }
+                });
+            });
+        })
+    );
+  }
+});
+
+// Handler untuk background sync
+const bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin('offline-requests', {
+  maxRetentionTime: 24 * 60 // Retry for max of 24 Hours (specified in minutes)
+});
+
+// Register route for offline POST requests
+registerRoute(
+  ({url}) => url.pathname.startsWith('/api/') && url.href.includes('dicoding.dev'),
+  new workbox.strategies.NetworkOnly({
+    plugins: [bgSyncPlugin]
+  }),
+  'POST'
+);
+
+// Tambahkan handler untuk mensinkronkan data saat online kembali
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-stories') {
+    event.waitUntil(syncStories());
+  }
+});
+
+async function syncStories() {
+  try {
+    const cache = await caches.open('api-responses');
+    const requests = await cache.keys();
+    
+    const syncPromises = requests
+      .filter(request => request.url.includes('dicoding.dev'))
+      .map(async (request) => {
+        try {
+          const networkResponse = await fetch(request);
+          await cache.put(request, networkResponse.clone());
+          return networkResponse;
+        } catch (error) {
+          console.error('Sync failed for:', request.url);
+          return null;
+        }
+      });
+
+    await Promise.all(syncPromises);
+    console.log('Stories synced successfully');
+  } catch (error) {
+    console.error('Story sync failed:', error);
+  }
+}
