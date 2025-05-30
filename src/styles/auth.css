@@ -5,8 +5,13 @@
   min-height: 100vh;
   min-width: 100vw;
   padding: 2rem 1rem;
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, var(--royal-blue), var(--purple), var(--dark-pink));
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(
+    135deg,
+    var(--royal-blue),
+    var(--purple),
+    var(--dark-pink)
+  );
   position: fixed;
   top: 0;
   left: 0;
@@ -42,7 +47,12 @@
   margin-bottom: 1.5rem;
   text-align: center;
   font-weight: 600;
-  background: linear-gradient(to right, var(--purple), var(--dark-pink), var(--orange));
+  background: linear-gradient(
+    to right,
+    var(--purple),
+    var(--dark-pink),
+    var(--orange)
+  );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -54,6 +64,10 @@
   transition: all 0.3s ease-in-out;
 }
 
+input#photo {
+  margin-right: 1rem;
+}
+
 .form-group {
   margin-bottom: 1.25rem;
   transition: all 0.3s ease-in-out;
@@ -61,19 +75,17 @@
 
 .form-group label {
   display: block;
-  margin-bottom: 0.5rem;
   font-weight: 500;
   color: var(--text-color);
   transition: color 0.3s ease-in-out;
 }
 
 .form-group input {
-  width: 100%;
   padding: 0.85rem;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   font-size: 1rem;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   transition: all 0.3s ease-in-out;
 }
 
@@ -100,7 +112,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease-in-out;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   outline: none;
 }
 
@@ -108,6 +120,7 @@
   background: linear-gradient(to right, var(--royal-blue), var(--purple));
   color: white;
   width: 100%;
+  margin-top: 1rem;
   box-shadow: 0 4px 10px rgba(64, 93, 230, 0.3);
   transition: all 0.4s ease-in-out;
   position: relative;
@@ -116,13 +129,18 @@
 }
 
 .btn-primary::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to right, var(--purple), var(--dark-pink), var(--orange));
+  background: linear-gradient(
+    to right,
+    var(--purple),
+    var(--dark-pink),
+    var(--orange)
+  );
   z-index: -1;
   opacity: 0;
   transition: opacity 0.4s ease-in-out;
@@ -157,7 +175,7 @@
 }
 
 .btn-link::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 100%;
   height: 1px;
