@@ -6,7 +6,6 @@ const StoryService = {
   async getAllStories(page = 1, size = 10, location = 0) {
     try {
       const token = AuthService.getToken();
-
       const response = await fetch(
         `${CONFIG.BASE_URL}/stories?page=${page}&size=${size}&location=${location}`,
         {
@@ -21,27 +20,23 @@ const StoryService = {
       if (responseJson.error) {
         throw new Error(responseJson.message);
       }
-      
+
       // Save stories to IndexedDB for offline access
       await DatabaseHelper.saveStories(responseJson.listStory);
-      
       return responseJson.listStory;
+
     } catch (error) {
       console.log('Failed to fetch from network, trying IndexedDB...');
-      // If network request fails, try to get stories from IndexedDB
       const offlineStories = await DatabaseHelper.getAllStories();
       
       if (offlineStories && offlineStories.length > 0) {
-        // Return stories from page 1 only when offline
-        if (page === 1) {
-          return offlineStories;
-        } else {
-          // For pagination, return empty array if not page 1
-          return [];
-        }
+        console.log('Returning stories from IndexedDB');
+        // Return paginated results when offline
+        const start = (page - 1) * size;
+        const end = start + size;
+        return offlineStories.slice(start, end);
       }
       
-      // If no stories in IndexedDB, rethrow the error
       throw error;
     }
   },
@@ -49,7 +44,6 @@ const StoryService = {
   async getStoryDetail(id) {
     try {
       const token = AuthService.getToken();
-
       const response = await fetch(`${CONFIG.BASE_URL}/stories/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -61,21 +55,20 @@ const StoryService = {
       if (responseJson.error) {
         throw new Error(responseJson.message);
       }
-      
+
       // Save individual story to IndexedDB
       await DatabaseHelper.saveStories([responseJson.story]);
-      
       return responseJson.story;
+
     } catch (error) {
       console.log('Failed to fetch story detail from network, trying IndexedDB...');
-      // If network request fails, try to get story from IndexedDB
       const offlineStory = await DatabaseHelper.getStory(id);
       
       if (offlineStory) {
+        console.log('Returning story from IndexedDB');
         return offlineStory;
       }
       
-      // If story not in IndexedDB, rethrow the error
       throw error;
     }
   },

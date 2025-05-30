@@ -18,13 +18,9 @@ const openDB = () => {
     
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
-      
-      // Create object store for stories
       if (!db.objectStoreNames.contains(OBJECT_STORE_NAME)) {
         db.createObjectStore(OBJECT_STORE_NAME, { keyPath: 'id' });
       }
-      
-      // Create object store for favorite stories
       if (!db.objectStoreNames.contains(FAVORITE_STORE_NAME)) {
         db.createObjectStore(FAVORITE_STORE_NAME, { keyPath: 'id' });
       }
@@ -33,46 +29,77 @@ const openDB = () => {
 };
 
 const DatabaseHelper = {
-  // Save stories to IndexedDB
   async saveStories(stories) {
-    const db = await openDB();
-    const transaction = db.transaction(OBJECT_STORE_NAME, 'readwrite');
-    const store = transaction.objectStore(OBJECT_STORE_NAME);
-    
-    stories.forEach((story) => {
-      store.put(story);
-    });
-    
-    return new Promise((resolve, reject) => {
-      transaction.oncomplete = () => resolve(true);
-      transaction.onerror = () => reject(new Error('Failed to save stories'));
-    });
+    try {
+      const db = await openDB();
+      const transaction = db.transaction(OBJECT_STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(OBJECT_STORE_NAME);
+      
+      // Save each story
+      await Promise.all(stories.map(story => {
+        // Save story images as blobs
+        return fetch(story.photoUrl)
+          .then(response => response.blob())
+          .then(blob => {
+            // Store the image blob along with story data
+            const storyWithImage = {
+              ...story,
+              photoBlob: blob,
+              timestamp: new Date().getTime()
+            };
+            return store.put(storyWithImage);
+          });
+      }));
+
+      return true;
+    } catch (error) {
+      console.error('Error saving stories:', error);
+      return false;
+    }
   },
   
   // Get all stories from IndexedDB
   async getAllStories() {
-    const db = await openDB();
-    const transaction = db.transaction(OBJECT_STORE_NAME, 'readonly');
-    const store = transaction.objectStore(OBJECT_STORE_NAME);
-    const request = store.getAll();
-    
-    return new Promise((resolve, reject) => {
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(new Error('Failed to get stories'));
-    });
+    try {
+      const db = await openDB();
+      const transaction = db.transaction(OBJECT_STORE_NAME, 'readonly');
+      const store = transaction.objectStore(OBJECT_STORE_NAME);
+      
+      let stories = await store.getAll();
+      
+      // Convert stored blobs back to URLs
+      stories = await Promise.all(stories.map(async (story) => {
+        if (story.photoBlob) {
+          story.photoUrl = URL.createObjectURL(story.photoBlob);
+        }
+        return story;
+      }));
+      
+      // Sort by timestamp
+      return stories.sort((a, b) => b.timestamp - a.timestamp);
+    } catch (error) {
+      console.error('Error getting stories:', error);
+      return [];
+    }
   },
   
   // Get a story by ID from IndexedDB
   async getStory(id) {
-    const db = await openDB();
-    const transaction = db.transaction(OBJECT_STORE_NAME, 'readonly');
-    const store = transaction.objectStore(OBJECT_STORE_NAME);
-    const request = store.get(id);
-    
-    return new Promise((resolve, reject) => {
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(new Error('Failed to get story'));
-    });
+    try {
+      const db = await openDB();
+      const transaction = db.transaction(OBJECT_STORE_NAME, 'readonly');
+      const store = transaction.objectStore(OBJECT_STORE_NAME);
+      
+      const story = await store.get(id);
+      if (story && story.photoBlob) {
+        story.photoUrl = URL.createObjectURL(story.photoBlob);
+      }
+      
+      return story;
+    } catch (error) {
+      console.error('Error getting story:', error);
+      return null;
+    }
   },
   
   // Save a story to favorites
@@ -127,5 +154,11 @@ const DatabaseHelper = {
     });
   }
 };
+
+// Clean up object URLs when page unloads
+window.addEventListener('unload', () => {
+  const objectUrls = [];
+  objectUrls.forEach(url => URL.revokeObjectURL(url));
+});
 
 export default DatabaseHelper;
